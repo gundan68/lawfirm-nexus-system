@@ -28,6 +28,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { Search, Plus, MoreHorizontal, Edit, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // Mock data
 interface User {
@@ -82,10 +93,51 @@ const mockUsers: User[] = [
   },
 ];
 
+// Form schema
+const userFormSchema = z.object({
+  username: z.string().min(1, { message: "使用者名稱不能為空" }),
+  name: z.string().min(1, { message: "姓名不能為空" }),
+  email: z.string().email({ message: "請輸入有效的Email格式" }),
+  role: z.enum(["管理者", "律師", "助理"]),
+  password: z.string().min(6, { message: "密碼至少需要6個字符" }),
+  status: z.enum(["啟用", "停用"]).default("啟用"),
+});
+
+type UserFormValues = z.infer<typeof userFormSchema>;
+
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+
+  // Forms
+  const addForm = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      username: "",
+      name: "",
+      email: "",
+      role: "助理",
+      password: "",
+      status: "啟用",
+    },
+  });
+
+  const editForm = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchema.partial({ password: true })),
+    defaultValues: {
+      username: "",
+      name: "",
+      email: "",
+      role: "助理",
+      password: "",
+      status: "啟用",
+    },
+  });
 
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -97,6 +149,77 @@ const UsersPage: React.FC = () => {
     setSearchQuery(e.target.value);
   };
 
+  // Add user
+  const onAddSubmit = (data: UserFormValues) => {
+    const newUserId = `USR${String(users.length + 1).padStart(3, '0')}`;
+    const newUser: User = {
+      id: newUserId,
+      username: data.username,
+      name: data.name,
+      email: data.email,
+      role: data.role,
+      status: data.status,
+    };
+
+    setUsers([...users, newUser]);
+    setIsAddUserDialogOpen(false);
+    addForm.reset();
+    toast.success("使用者新增成功");
+  };
+
+  // Edit user
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    editForm.reset({
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      password: "",
+      status: user.status,
+    });
+    setIsEditUserDialogOpen(true);
+  };
+
+  const onEditSubmit = (data: UserFormValues) => {
+    if (!editingUser) return;
+
+    const updatedUsers = users.map((user) => {
+      if (user.id === editingUser.id) {
+        return {
+          ...user,
+          username: data.username,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          status: data.status,
+        };
+      }
+      return user;
+    });
+
+    setUsers(updatedUsers);
+    setIsEditUserDialogOpen(false);
+    setEditingUser(null);
+    toast.success("使用者更新成功");
+  };
+
+  // Delete user
+  const handleDeleteUser = (user: User) => {
+    setDeletingUser(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (!deletingUser) return;
+    
+    const updatedUsers = users.filter((user) => user.id !== deletingUser.id);
+    setUsers(updatedUsers);
+    setIsDeleteDialogOpen(false);
+    setDeletingUser(null);
+    toast.success("使用者已刪除");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -104,6 +227,7 @@ const UsersPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-law-dark">使用者管理</h1>
           <p className="text-muted-foreground">管理系統使用者帳戶與權限</p>
         </div>
+        {/* Add User Dialog */}
         <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-law-primary hover:bg-law-primary/90">
@@ -118,69 +242,273 @@ const UsersPage: React.FC = () => {
                 建立新的系統使用者帳戶
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="username" className="text-right">
-                  使用者名稱
-                </Label>
-                <Input
-                  id="username"
-                  placeholder="username"
-                  className="col-span-3"
+            <Form {...addForm}>
+              <form onSubmit={addForm.handleSubmit(onAddSubmit)} className="space-y-4">
+                <FormField
+                  control={addForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">使用者名稱</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="username"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  姓名
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="姓名"
-                  className="col-span-3"
+                <FormField
+                  control={addForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">姓名</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="姓名"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  className="col-span-3"
+                <FormField
+                  control={addForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="email@example.com"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="role" className="text-right">
-                  角色
-                </Label>
-                <select
-                  id="role"
-                  className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="管理者">管理者</option>
-                  <option value="律師">律師</option>
-                  <option value="助理">助理</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">
-                  初始密碼
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="********"
-                  className="col-span-3"
+                <FormField
+                  control={addForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">角色</FormLabel>
+                      <FormControl>
+                        <select
+                          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          {...field}
+                        >
+                          <option value="管理者">管理者</option>
+                          <option value="律師">律師</option>
+                          <option value="助理">助理</option>
+                        </select>
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>
+                <FormField
+                  control={addForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">初始密碼</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="********"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter className="pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsAddUserDialogOpen(false);
+                      addForm.reset();
+                    }}
+                  >
+                    取消
+                  </Button>
+                  <Button type="submit" className="bg-law-primary hover:bg-law-primary/90">
+                    新增
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit User Dialog */}
+        <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>編輯使用者</DialogTitle>
+              <DialogDescription>
+                修改使用者資料
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">使用者名稱</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="username"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">姓名</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="姓名"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="email@example.com"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">角色</FormLabel>
+                      <FormControl>
+                        <select
+                          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          {...field}
+                        >
+                          <option value="管理者">管理者</option>
+                          <option value="律師">律師</option>
+                          <option value="助理">助理</option>
+                        </select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">重設密碼</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="留空表示不修改密碼"
+                          className="col-span-3"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">狀態</FormLabel>
+                      <FormControl>
+                        <select
+                          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          {...field}
+                        >
+                          <option value="啟用">啟用</option>
+                          <option value="停用">停用</option>
+                        </select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter className="pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditUserDialogOpen(false);
+                      setEditingUser(null);
+                    }}
+                  >
+                    取消
+                  </Button>
+                  <Button type="submit" className="bg-law-primary hover:bg-law-primary/90">
+                    儲存
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>刪除使用者</DialogTitle>
+              <DialogDescription>
+                {deletingUser ? `確定要刪除使用者 ${deletingUser.name}（${deletingUser.username}）嗎？` : '確定要刪除此使用者嗎？'}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  setDeletingUser(null);
+                }}
+              >
                 取消
               </Button>
-              <Button type="submit" className="bg-law-primary hover:bg-law-primary/90">
-                新增
+              <Button 
+                type="button" 
+                variant="destructive"
+                onClick={confirmDeleteUser}
+              >
+                確認刪除
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -253,11 +581,15 @@ const UsersPage: React.FC = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="flex items-center">
+                        <DropdownMenuItem 
+                          className="flex items-center"
+                          onClick={() => handleEditUser(user)}
+                        >
                           <Edit className="mr-2 h-4 w-4" /> 編輯
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="flex items-center text-red-600"
+                          onClick={() => handleDeleteUser(user)}
                         >
                           <Trash className="mr-2 h-4 w-4" /> 刪除
                         </DropdownMenuItem>
