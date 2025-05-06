@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,6 +49,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     },
   });
 
+  // Reset form when user changes
   React.useEffect(() => {
     if (user) {
       form.reset({
@@ -80,25 +82,27 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       // Show success toast
       toast.success("使用者更新成功");
       
-      // Close the dialog
+      // Close the dialog - IMPORTANT: do this before resetting form
       onOpenChange(false);
-      
-      // Optional: Reset form after successful submission
-      form.reset();
     } catch (error) {
       console.error("Error updating user:", error);
       toast.error("更新使用者時發生錯誤");
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      // Reset form when dialog is closed
-      if (!open) {
+  // Separate function to handle dialog close
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+      // Delay form reset to avoid React state update conflicts
+      setTimeout(() => {
         form.reset();
-      }
-      onOpenChange(open);
-    }}>
+      }, 100);
+    }
+    onOpenChange(open);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>編輯使用者</DialogTitle>
@@ -222,8 +226,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 type="button" 
                 variant="outline" 
                 onClick={() => {
-                  form.reset();
+                  // Close dialog first, then reset form
                   onOpenChange(false);
+                  setTimeout(() => {
+                    form.reset();
+                  }, 100);
                 }}
               >
                 取消

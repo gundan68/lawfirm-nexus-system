@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,9 +61,10 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
       // Add the new user
       onAddUser(newUser);
       
-      // Reset form and close dialog
-      form.reset();
+      // Show success toast
       toast.success("使用者新增成功");
+      
+      // Close dialog - IMPORTANT: do this before resetting form
       setIsOpen(false);
     } catch (error) {
       console.error("Error adding user:", error);
@@ -70,14 +72,19 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      // Reset form when dialog is closed
-      if (!open) {
+  // Separate function to handle dialog changes
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+      // Delay form reset to avoid React state update conflicts
+      setTimeout(() => {
         form.reset();
-      }
-      setIsOpen(open);
-    }}>
+      }, 100);
+    }
+    setIsOpen(open);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>
         <Button className="bg-law-primary hover:bg-law-primary/90">
           <Plus className="mr-2 h-4 w-4" />
@@ -188,8 +195,11 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
                 type="button" 
                 variant="outline" 
                 onClick={() => {
-                  form.reset();
+                  // Close dialog first, then reset form
                   setIsOpen(false);
+                  setTimeout(() => {
+                    form.reset();
+                  }, 100);
                 }}
               >
                 取消

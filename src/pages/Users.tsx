@@ -30,7 +30,12 @@ const UsersPage: React.FC = () => {
 
   // Add user
   const handleAddUser = (newUser: User) => {
-    setUsers([...users, newUser]);
+    try {
+      setUsers((prevUsers) => [...prevUsers, newUser]);
+    } catch (error) {
+      console.error("Error in handleAddUser:", error);
+      toast.error("新增使用者時發生錯誤");
+    }
   };
 
   // Edit user
@@ -41,16 +46,19 @@ const UsersPage: React.FC = () => {
 
   const handleUpdateUser = (updatedUser: User) => {
     try {
-      const updatedUsers = users.map((user) => {
-        if (user.id === updatedUser.id) {
-          return updatedUser;
-        }
-        return user;
-      });
-
-      setUsers(updatedUsers);
+      setUsers((prevUsers) => 
+        prevUsers.map((user) => 
+          user.id === updatedUser.id ? updatedUser : user
+        )
+      );
+      
+      // Important: Close dialog and clear editing user in separate steps
       setIsEditUserDialogOpen(false);
-      setEditingUser(null);
+      
+      // Add a small delay before clearing the editing user
+      setTimeout(() => {
+        setEditingUser(null);
+      }, 100);
     } catch (error) {
       console.error("Error in handleUpdateUser:", error);
       toast.error("更新使用者時發生錯誤");
