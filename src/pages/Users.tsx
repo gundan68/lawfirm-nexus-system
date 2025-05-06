@@ -40,16 +40,21 @@ const UsersPage: React.FC = () => {
   };
 
   const handleUpdateUser = (updatedUser: User) => {
-    const updatedUsers = users.map((user) => {
-      if (user.id === updatedUser.id) {
-        return updatedUser;
-      }
-      return user;
-    });
+    try {
+      const updatedUsers = users.map((user) => {
+        if (user.id === updatedUser.id) {
+          return updatedUser;
+        }
+        return user;
+      });
 
-    setUsers(updatedUsers);
-    setIsEditUserDialogOpen(false);
-    setEditingUser(null);
+      setUsers(updatedUsers);
+      setIsEditUserDialogOpen(false);
+      setEditingUser(null);
+    } catch (error) {
+      console.error("Error in handleUpdateUser:", error);
+      toast.error("更新使用者時發生錯誤");
+    }
   };
 
   // Delete user

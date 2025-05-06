@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,7 +57,10 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
         status: data.status,
       };
 
+      // Add the new user
       onAddUser(newUser);
+      
+      // Reset form and close dialog
       form.reset();
       toast.success("使用者新增成功");
       setIsOpen(false);
@@ -69,7 +71,13 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      // Reset form when dialog is closed
+      if (!open) {
+        form.reset();
+      }
+      setIsOpen(open);
+    }}>
       <DialogTrigger asChild>
         <Button className="bg-law-primary hover:bg-law-primary/90">
           <Plus className="mr-2 h-4 w-4" />
@@ -180,8 +188,8 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
                 type="button" 
                 variant="outline" 
                 onClick={() => {
-                  setIsOpen(false);
                   form.reset();
+                  setIsOpen(false);
                 }}
               >
                 取消

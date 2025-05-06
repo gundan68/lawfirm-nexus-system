@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -75,9 +74,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         status: data.status,
       };
 
+      // Call the parent component's handler to update the user
       onEditUser(updatedUser);
+      
+      // Show success toast
       toast.success("使用者更新成功");
+      
+      // Close the dialog
       onOpenChange(false);
+      
+      // Optional: Reset form after successful submission
+      form.reset();
     } catch (error) {
       console.error("Error updating user:", error);
       toast.error("更新使用者時發生錯誤");
@@ -85,7 +92,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      // Reset form when dialog is closed
+      if (!open) {
+        form.reset();
+      }
+      onOpenChange(open);
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>編輯使用者</DialogTitle>
@@ -208,7 +221,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  form.reset();
+                  onOpenChange(false);
+                }}
               >
                 取消
               </Button>
