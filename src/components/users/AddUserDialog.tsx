@@ -22,6 +22,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
@@ -45,21 +46,26 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
     },
   });
 
-  const onSubmit = (data: UserFormValues) => {
-    const newUserId = `USR${String(userCount + 1).padStart(3, '0')}`;
-    const newUser: User = {
-      id: newUserId,
-      username: data.username,
-      name: data.name,
-      email: data.email,
-      role: data.role,
-      status: data.status,
-    };
+  const onSubmit = async (data: UserFormValues) => {
+    try {
+      const newUserId = `USR${String(userCount + 1).padStart(3, '0')}`;
+      const newUser: User = {
+        id: newUserId,
+        username: data.username,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
+      };
 
-    onAddUser(newUser);
-    setIsOpen(false);
-    form.reset();
-    toast.success("使用者新增成功");
+      onAddUser(newUser);
+      form.reset();
+      toast.success("使用者新增成功");
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast.error("新增使用者時發生錯誤");
+    }
   };
 
   return (
@@ -92,6 +98,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -108,6 +115,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -125,6 +133,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -144,6 +153,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
                       <option value="助理">助理</option>
                     </select>
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -161,6 +171,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser, userCount }) =
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />

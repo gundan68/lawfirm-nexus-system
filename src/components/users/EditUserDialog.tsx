@@ -19,6 +19,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -61,21 +62,26 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
   }, [user, form]);
 
-  const onSubmit = (data: UserFormValues) => {
-    if (!user) return;
+  const onSubmit = async (data: UserFormValues) => {
+    try {
+      if (!user) return;
 
-    const updatedUser: User = {
-      ...user,
-      username: data.username,
-      name: data.name,
-      email: data.email,
-      role: data.role,
-      status: data.status,
-    };
+      const updatedUser: User = {
+        ...user,
+        username: data.username,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
+      };
 
-    onEditUser(updatedUser);
-    onOpenChange(false);
-    toast.success("使用者更新成功");
+      onEditUser(updatedUser);
+      toast.success("使用者更新成功");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast.error("更新使用者時發生錯誤");
+    }
   };
 
   return (
@@ -102,6 +108,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -118,6 +125,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -135,6 +143,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -154,6 +163,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       <option value="助理">助理</option>
                     </select>
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -171,6 +181,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
@@ -189,6 +200,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       <option value="停用">停用</option>
                     </select>
                   </FormControl>
+                  <FormMessage className="col-span-4 text-right" />
                 </FormItem>
               )}
             />
