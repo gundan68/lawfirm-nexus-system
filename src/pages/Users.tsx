@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
@@ -10,13 +10,35 @@ import EditUserDialog from "@/components/users/EditUserDialog";
 import DeleteUserDialog from "@/components/users/DeleteUserDialog";
 import UserTable from "@/components/users/UserTable";
 
+// LocalStorage key
+const LOCAL_STORAGE_USERS_KEY = "law-management-users";
+
 const UsersPage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Load users from localStorage on initial mount
+  useEffect(() => {
+    const savedUsers = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
+    if (savedUsers) {
+      setUsers(JSON.parse(savedUsers));
+    } else {
+      // Use mock data if no saved data exists
+      setUsers(mockUsers);
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(mockUsers));
+    }
+  }, []);
+
+  // Save users to localStorage whenever they change
+  useEffect(() => {
+    if (users.length > 0) {
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(users));
+    }
+  }, [users]);
 
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -31,7 +53,9 @@ const UsersPage: React.FC = () => {
   // Add user
   const handleAddUser = (newUser: User) => {
     try {
-      setUsers((prevUsers) => [...prevUsers, newUser]);
+      const updatedUsers = [...users, newUser];
+      setUsers(updatedUsers);
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
     } catch (error) {
       console.error("Error in handleAddUser:", error);
       toast.error("新增使用者時發生錯誤");
@@ -46,11 +70,11 @@ const UsersPage: React.FC = () => {
 
   const handleUpdateUser = (updatedUser: User) => {
     try {
-      setUsers((prevUsers) => 
-        prevUsers.map((user) => 
-          user.id === updatedUser.id ? updatedUser : user
-        )
+      const updatedUsers = users.map((user) => 
+        user.id === updatedUser.id ? updatedUser : user
       );
+      setUsers(updatedUsers);
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
       setIsEditUserDialogOpen(false);
       setEditingUser(null);
       toast.success("使用者更新成功");
@@ -69,11 +93,17 @@ const UsersPage: React.FC = () => {
   const confirmDeleteUser = () => {
     if (!deletingUser) return;
     
-    const updatedUsers = users.filter((user) => user.id !== deletingUser.id);
-    setUsers(updatedUsers);
-    setIsDeleteDialogOpen(false);
-    setDeletingUser(null);
-    toast.success("使用者已刪除");
+    try {
+      const updatedUsers = users.filter((user) => user.id !== deletingUser.id);
+      setUsers(updatedUsers);
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
+      setIsDeleteDialogOpen(false);
+      setDeletingUser(null);
+      toast.success("使用者已刪除");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("刪除使用者時發生錯誤");
+    }
   };
 
   return (
