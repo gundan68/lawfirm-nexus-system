@@ -51,14 +51,9 @@ const UsersPage: React.FC = () => {
           user.id === updatedUser.id ? updatedUser : user
         )
       );
-      
-      // Important: Close dialog and clear editing user in separate steps
       setIsEditUserDialogOpen(false);
-      
-      // Add a small delay before clearing the editing user
-      setTimeout(() => {
-        setEditingUser(null);
-      }, 100);
+      setEditingUser(null);
+      toast.success("使用者更新成功");
     } catch (error) {
       console.error("Error in handleUpdateUser:", error);
       toast.error("更新使用者時發生錯誤");

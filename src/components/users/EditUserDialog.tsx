@@ -49,9 +49,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     },
   });
 
-  // Reset form when user changes
+  // Reset form when user or isOpen changes
   React.useEffect(() => {
-    if (user) {
+    if (user && isOpen) {
       form.reset({
         username: user.username,
         name: user.name,
@@ -61,7 +61,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         status: user.status,
       });
     }
-  }, [user, form]);
+  }, [user, form, isOpen]);
 
   const onSubmit = async (data: UserFormValues) => {
     try {
@@ -79,30 +79,20 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       // Call the parent component's handler to update the user
       onEditUser(updatedUser);
       
-      // Show success toast
-      toast.success("使用者更新成功");
-      
-      // Close the dialog - IMPORTANT: do this before resetting form
-      onOpenChange(false);
+      // Success toast and dialog closing are now handled in the parent component
     } catch (error) {
       console.error("Error updating user:", error);
       toast.error("更新使用者時發生錯誤");
     }
   };
 
-  // Separate function to handle dialog close
-  const handleDialogChange = (open: boolean) => {
-    if (!open) {
-      // Delay form reset to avoid React state update conflicts
-      setTimeout(() => {
-        form.reset();
-      }, 100);
-    }
-    onOpenChange(open);
+  // Handle dialog close without submitting
+  const handleCancel = () => {
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>編輯使用者</DialogTitle>
@@ -225,13 +215,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => {
-                  // Close dialog first, then reset form
-                  onOpenChange(false);
-                  setTimeout(() => {
-                    form.reset();
-                  }, 100);
-                }}
+                onClick={handleCancel}
               >
                 取消
               </Button>
