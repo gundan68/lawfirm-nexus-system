@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import EditCaseDialog from "@/components/cases/EditCaseDialog";
@@ -126,7 +125,7 @@ const CasesPage: React.FC = () => {
       responsibleUser: formData.get('responsible') as string,
       category: formData.get('category') as string,
       date: formData.get('date') as string,
-      status: formData.get('status') as Case['status'],
+      status: formData.get('status') as Case["status"],
       courtNumber: formData.get('courtNumber') as string || undefined,
     };
     
