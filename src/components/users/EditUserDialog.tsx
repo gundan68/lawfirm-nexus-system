@@ -41,7 +41,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       // Call the parent component's handler to update the user
       onEditUser(updatedUser);
       
-      // Success toast and dialog closing are now handled in the parent component
+      // Close dialog after submission
+      onOpenChange(false);
     } catch (error) {
       console.error("Error updating user:", error);
       toast.error("更新使用者時發生錯誤");

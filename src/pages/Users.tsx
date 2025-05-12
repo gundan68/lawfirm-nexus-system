@@ -20,6 +20,8 @@ const UsersPage: React.FC = () => {
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // Force re-render when users change
+  const [updateTrigger, setUpdateTrigger] = useState(0);
 
   // Load users from localStorage on initial mount
   useEffect(() => {
@@ -31,7 +33,7 @@ const UsersPage: React.FC = () => {
       setUsers(mockUsers);
       localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(mockUsers));
     }
-  }, []);
+  }, [updateTrigger]);
 
   // Save users to localStorage whenever they change
   useEffect(() => {
@@ -56,6 +58,8 @@ const UsersPage: React.FC = () => {
       const updatedUsers = [...users, newUser];
       setUsers(updatedUsers);
       localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
+      // Force re-render
+      setUpdateTrigger(prev => prev + 1);
     } catch (error) {
       console.error("Error in handleAddUser:", error);
       toast.error("新增使用者時發生錯誤");
@@ -78,6 +82,8 @@ const UsersPage: React.FC = () => {
       setIsEditUserDialogOpen(false);
       setEditingUser(null);
       toast.success("使用者更新成功");
+      // Force re-render after update
+      setUpdateTrigger(prev => prev + 1);
     } catch (error) {
       console.error("Error in handleUpdateUser:", error);
       toast.error("更新使用者時發生錯誤");
@@ -100,6 +106,8 @@ const UsersPage: React.FC = () => {
       setIsDeleteDialogOpen(false);
       setDeletingUser(null);
       toast.success("使用者已刪除");
+      // Force re-render after deletion
+      setUpdateTrigger(prev => prev + 1);
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("刪除使用者時發生錯誤");

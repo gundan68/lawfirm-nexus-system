@@ -24,6 +24,13 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   onOpenChange,
   onDeleteUser,
 }) => {
+  const handleDelete = () => {
+    // Call the parent component's handler to delete the user
+    onDeleteUser();
+    // Ensure dialog closes after deletion
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -44,7 +51,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
           <Button 
             type="button" 
             variant="destructive"
-            onClick={onDeleteUser}
+            onClick={handleDelete}
           >
             確認刪除
           </Button>
