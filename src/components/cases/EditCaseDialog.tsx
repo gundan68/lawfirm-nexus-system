@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -104,9 +103,6 @@ const EditCaseDialog: React.FC<EditCaseDialogProps> = ({
 
       // Update case
       onUpdateCase(updatedCase);
-      
-      // Show success toast
-      toast.success("案件更新成功");
       
       // Close dialog
       onOpenChange(false);

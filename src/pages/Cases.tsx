@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import EditCaseDialog from "@/components/cases/EditCaseDialog";
 import RelatedDocumentsDialog from "@/components/cases/RelatedDocumentsDialog";
@@ -12,8 +12,11 @@ import AddCaseDialog from "@/components/cases/AddCaseDialog";
 import CaseTabs from "@/components/cases/CaseTabs";
 import { Case, mockCases } from "@/components/cases/CaseTypes";
 
+// Local storage key for cases
+const LOCAL_STORAGE_CASES_KEY = "law_management_cases";
+
 const CasesPage: React.FC = () => {
-  const [cases, setCases] = useState<Case[]>(mockCases);
+  const [cases, setCases] = useState<Case[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   
@@ -23,6 +26,27 @@ const CasesPage: React.FC = () => {
   const [isDocumentsDialogOpen, setIsDocumentsDialogOpen] = useState(false);
   const [isAddFeeDialogOpen, setIsAddFeeDialogOpen] = useState(false);
   const [isAddTimeDialogOpen, setIsAddTimeDialogOpen] = useState(false);
+  // Force re-render when cases change
+  const [updateTrigger, setUpdateTrigger] = useState(0);
+
+  // Load cases from localStorage on initial mount
+  useEffect(() => {
+    const savedCases = localStorage.getItem(LOCAL_STORAGE_CASES_KEY);
+    if (savedCases) {
+      setCases(JSON.parse(savedCases));
+    } else {
+      // If no cases in localStorage, use mock data
+      setCases(mockCases);
+      localStorage.setItem(LOCAL_STORAGE_CASES_KEY, JSON.stringify(mockCases));
+    }
+  }, [updateTrigger]);
+
+  // Save cases to localStorage whenever they change
+  useEffect(() => {
+    if (cases.length > 0) {
+      localStorage.setItem(LOCAL_STORAGE_CASES_KEY, JSON.stringify(cases));
+    }
+  }, [cases]);
 
   const filteredCases = cases.filter((caseItem) => {
     // First apply search filter
@@ -62,6 +86,9 @@ const CasesPage: React.FC = () => {
           caseItem.id === updatedCase.id ? updatedCase : caseItem
         )
       );
+      toast.success("案件更新成功");
+      // Force re-render after update
+      setUpdateTrigger(prev => prev + 1);
     } catch (error) {
       console.error("Error updating case:", error);
       toast.error("更新案件時發生錯誤");
@@ -115,6 +142,9 @@ const CasesPage: React.FC = () => {
     if (closeButton) {
       (closeButton as HTMLButtonElement).click();
     }
+
+    // Force re-render
+    setUpdateTrigger(prev => prev + 1);
   };
 
   return (
