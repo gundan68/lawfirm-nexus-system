@@ -17,17 +17,19 @@ export function UserFormField({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem className="grid grid-cols-4 items-center gap-4">
           <FormLabel className="text-right">{label}</FormLabel>
-          <FormControl>
-            <Input
-              type={type}
-              placeholder={placeholder}
-              className="col-span-3"
-              {...field}
-            />
-          </FormControl>
+          <div className="col-span-3">
+            <FormControl>
+              <Input
+                type={type}
+                placeholder={placeholder}
+                className={fieldState.error ? "border-red-500" : ""}
+                {...field}
+              />
+            </FormControl>
+          </div>
           <FormMessage className="col-span-4 text-right" />
         </FormItem>
       )}

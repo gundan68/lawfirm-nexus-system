@@ -3,7 +3,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@/types/user";
-import { UserFormValues, userFormSchema } from "./UserFormSchema";
+import { UserFormValues, userFormSchema, userEditFormSchema } from "./UserFormSchema";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "../ui/dialog";
@@ -26,9 +26,7 @@ const UserForm: React.FC<UserFormProps> = ({
 }) => {
   const form = useForm<UserFormValues>({
     resolver: zodResolver(
-      isEditMode 
-        ? userFormSchema.partial({ password: true }) 
-        : userFormSchema
+      isEditMode ? userEditFormSchema : userFormSchema
     ),
     defaultValues: {
       username: user?.username || "",

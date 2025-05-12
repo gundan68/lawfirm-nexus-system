@@ -8,6 +8,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { UserFormFieldProps } from "../UserFormFields";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function UserRoleField({ 
   control, name, label 
@@ -19,16 +26,24 @@ export function UserRoleField({
       render={({ field }) => (
         <FormItem className="grid grid-cols-4 items-center gap-4">
           <FormLabel className="text-right">{label}</FormLabel>
-          <FormControl>
-            <select
-              className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              {...field}
-            >
-              <option value="管理者">管理者</option>
-              <option value="律師">律師</option>
-              <option value="助理">助理</option>
-            </select>
-          </FormControl>
+          <div className="col-span-3">
+            <FormControl>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇角色" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="管理者">管理者</SelectItem>
+                  <SelectItem value="律師">律師</SelectItem>
+                  <SelectItem value="助理">助理</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormControl>
+          </div>
           <FormMessage className="col-span-4 text-right" />
         </FormItem>
       )}
