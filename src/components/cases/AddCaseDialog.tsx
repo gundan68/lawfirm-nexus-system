@@ -1,7 +1,16 @@
 
 import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Dialog,
   DialogContent,
@@ -11,16 +20,60 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
+import { caseSchema, CaseFormValues } from "./CaseFormSchema";
+import { CaseFormFields } from "./CaseFormFields";
 
 interface AddCaseDialogProps {
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (data: CaseFormValues) => void;
 }
 
 const AddCaseDialog: React.FC<AddCaseDialogProps> = ({ onSubmit }) => {
+  const [open, setOpen] = React.useState(false);
+  
+  const form = useForm<CaseFormValues>({
+    resolver: zodResolver(caseSchema),
+    defaultValues: {
+      title: "",
+      client: "",
+      responsibleUser: "",
+      category: "",
+      date: "",
+      status: "諮詢階段",
+      courtNumber: "",
+    },
+  });
+
+  const handleSubmit = async (data: CaseFormValues) => {
+    try {
+      // Call the parent onSubmit
+      onSubmit(data);
+      
+      // Reset form
+      form.reset();
+      
+      // Close dialog
+      setOpen(false);
+    } catch (error) {
+      console.error("Error adding case:", error);
+      toast.error("新增案件時發生錯誤");
+    }
+  };
+
+  // Handle dialog change
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+      // Delay form reset to avoid React state update conflicts
+      setTimeout(() => {
+        form.reset();
+      }, 100);
+    }
+    setOpen(open);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>
         <Button className="bg-law-primary hover:bg-law-primary/90">
           <Plus className="mr-2 h-4 w-4" />
@@ -34,119 +87,24 @@ const AddCaseDialog: React.FC<AddCaseDialogProps> = ({ onSubmit }) => {
             建立新的案件記錄
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
-                案件名稱
-              </Label>
-              <Input
-                id="title"
-                name="title"
-                placeholder="案件名稱"
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="client" className="text-right">
-                委託人
-              </Label>
-              <select
-                id="client"
-                name="client"
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <CaseFormFields />
+            
+            <DialogFooter className="mt-6">
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => handleDialogChange(false)}
               >
-                <option value="">選擇委託人</option>
-                <option value="王大明">王大明</option>
-                <option value="林小華">林小華</option>
-                <option value="張三">張三</option>
-                <option value="李四">李四</option>
-              </select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="responsible" className="text-right">
-                負責律師
-              </Label>
-              <select
-                id="responsible"
-                name="responsible"
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                required
-              >
-                <option value="">選擇負責人</option>
-                <option value="張大律師">張大律師</option>
-                <option value="李小律師">李小律師</option>
-              </select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                案件分類
-              </Label>
-              <select
-                id="category"
-                name="category"
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                required
-              >
-                <option value="">選擇分類</option>
-                <option value="民事">民事</option>
-                <option value="刑事">刑事</option>
-                <option value="行政訴訟">行政訴訟</option>
-                <option value="智慧財產">智慧財產</option>
-                <option value="勞資糾紛">勞資糾紛</option>
-              </select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right">
-                委託日期
-              </Label>
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                狀態
-              </Label>
-              <select
-                id="status"
-                name="status"
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                required
-              >
-                <option value="諮詢階段">諮詢階段</option>
-                <option value="進行中">進行中</option>
-                <option value="暫停">暫停</option>
-                <option value="結案">結案</option>
-              </select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="courtNumber" className="text-right">
-                法院案號
-              </Label>
-              <Input
-                id="courtNumber"
-                name="courtNumber"
-                placeholder="法院案號 (選填)"
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline">
-              取消
-            </Button>
-            <Button type="submit" className="bg-law-primary hover:bg-law-primary/90">
-              建立案件
-            </Button>
-          </DialogFooter>
-        </form>
+                取消
+              </Button>
+              <Button type="submit" className="bg-law-primary hover:bg-law-primary/90">
+                建立案件
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -10,6 +10,7 @@ import CasesTable from "@/components/cases/CasesTable";
 import AddCaseDialog from "@/components/cases/AddCaseDialog";
 import CaseTabs from "@/components/cases/CaseTabs";
 import { Case, mockCases } from "@/components/cases/CaseTypes";
+import { CaseFormValues } from "@/components/cases/CaseFormSchema";
 
 // Local storage key for cases
 const LOCAL_STORAGE_CASES_KEY = "law_management_cases";
@@ -112,37 +113,22 @@ const CasesPage: React.FC = () => {
     setIsAddTimeDialogOpen(true);
   };
 
-  // Handle add new case
-  const handleAddCase = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
+  // Updated: Handle add new case
+  const handleAddCase = (data: CaseFormValues) => {
     const newCase: Case = {
       id: `CS${cases.length + 1}`.padStart(5, '0'),
       caseNumber: `C-2025-${(cases.length + 43).toString().padStart(3, '0')}`,
-      title: formData.get('title') as string,
-      client: formData.get('client') as string,
-      responsibleUser: formData.get('responsible') as string,
-      category: formData.get('category') as string,
-      date: formData.get('date') as string,
-      status: formData.get('status') as Case["status"],
-      courtNumber: formData.get('courtNumber') as string || undefined,
+      title: data.title,
+      client: data.client,
+      responsibleUser: data.responsibleUser,
+      category: data.category,
+      date: data.date,
+      status: data.status as Case["status"],
+      courtNumber: data.courtNumber || undefined,
     };
     
     setCases([...cases, newCase]);
     toast.success("案件已新增");
-    
-    // Reset form by clearing all inputs
-    const form = e.currentTarget;
-    form.reset();
-    
-    // Close dialog
-    const closeButton = form.querySelector('button[type="button"]');
-    if (closeButton) {
-      (closeButton as HTMLButtonElement).click();
-    }
-
-    // Force re-render
     setUpdateTrigger(prev => prev + 1);
   };
 
