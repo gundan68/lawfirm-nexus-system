@@ -38,12 +38,18 @@ export const useCasesManagement = () => {
 
   const handleUpdateCase = (updatedCase: Case) => {
     try {
-      setCases(prevCases => 
-        prevCases.map(caseItem => 
-          caseItem.id === updatedCase.id ? updatedCase : caseItem
-        )
+      const updatedCases = cases.map(caseItem => 
+        caseItem.id === updatedCase.id ? updatedCase : caseItem
       );
+      
+      // Update the state with the new array
+      setCases(updatedCases);
+      
+      // Save to localStorage immediately
+      localStorage.setItem(LOCAL_STORAGE_CASES_KEY, JSON.stringify(updatedCases));
+      
       toast.success("案件更新成功");
+      
       // Force re-render after update
       setUpdateTrigger(prev => prev + 1);
     } catch (error) {
@@ -65,7 +71,12 @@ export const useCasesManagement = () => {
       courtNumber: data.courtNumber || undefined,
     };
     
-    setCases([...cases, newCase]);
+    const newCases = [...cases, newCase];
+    setCases(newCases);
+    
+    // Save to localStorage immediately
+    localStorage.setItem(LOCAL_STORAGE_CASES_KEY, JSON.stringify(newCases));
+    
     toast.success("案件已新增");
     setUpdateTrigger(prev => prev + 1);
   };

@@ -65,7 +65,7 @@ const EditCaseDialog: React.FC<EditCaseDialogProps> = ({
     }
   }, [caseData, form]);
 
-  const onSubmit = async (data: CaseFormValues) => {
+  const onSubmit = (data: CaseFormValues) => {
     try {
       if (!caseData) return;
 
@@ -77,7 +77,7 @@ const EditCaseDialog: React.FC<EditCaseDialogProps> = ({
         category: data.category,
         date: data.date,
         status: data.status as Case["status"],
-        courtNumber: data.courtNumber,
+        courtNumber: data.courtNumber || undefined,
       };
 
       // Update case
