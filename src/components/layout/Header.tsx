@@ -1,45 +1,52 @@
 
 import React from "react";
-import { Bell, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { 
+import { LogOut, User } from "lucide-react";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const Header: React.FC = () => {
+const Header = () => {
+  const { authState, signOut } = useAuth();
+  const profile = authState.profile;
+
   return (
-    <header className="flex h-16 items-center gap-4 border-b bg-white px-6">
-      <div className="flex-1">
-        <h1 className="text-lg font-semibold text-law-dark">律師事務所管理系統</h1>
+    <header className="bg-white border-b h-16 flex items-center justify-between px-6 sticky top-0 z-10">
+      <div>
+        <h1 className="text-xl font-medium text-gray-800">律師事務所管理系統</h1>
       </div>
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon">
-          <Bell className="h-5 w-5 text-law-muted" />
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              className="relative h-9 w-9 rounded-full bg-law-secondary/20"
-            >
-              <User className="h-5 w-5 text-law-primary" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>我的帳戶</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>個人資料</DropdownMenuItem>
-            <DropdownMenuItem>設定</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>登出</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {authState.user && (
+        <div className="flex items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <User size={16} />
+                <span>{profile?.full_name || authState.user.email}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="p-2 border-b">
+                <p className="font-medium">{profile?.full_name || "用戶"}</p>
+                <p className="text-sm text-muted-foreground">{authState.user.email}</p>
+                <p className="text-xs mt-1 text-muted-foreground">
+                  {profile?.role || "律師"}
+                </p>
+              </div>
+              <DropdownMenuItem 
+                onClick={signOut}
+                className="text-red-500 cursor-pointer focus:text-red-500 flex items-center gap-2"
+              >
+                <LogOut size={16} />
+                登出
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </header>
   );
 };

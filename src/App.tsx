@@ -14,27 +14,65 @@ import FeesPage from "./pages/Fees";
 import TimePage from "./pages/Time";
 import SettingsPage from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
-          <Route path="/users" element={<MainLayout><UsersPage /></MainLayout>} />
-          <Route path="/cases" element={<MainLayout><CasesPage /></MainLayout>} />
-          <Route path="/clients" element={<MainLayout><ClientsPage /></MainLayout>} />
-          <Route path="/documents" element={<MainLayout><DocumentsPage /></MainLayout>} />
-          <Route path="/fees" element={<MainLayout><FeesPage /></MainLayout>} />
-          <Route path="/time" element={<MainLayout><TimePage /></MainLayout>} />
-          <Route path="/settings" element={<MainLayout><SettingsPage /></MainLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <MainLayout><Dashboard /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/users" element={
+              <ProtectedRoute>
+                <MainLayout><UsersPage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/cases" element={
+              <ProtectedRoute>
+                <MainLayout><CasesPage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/clients" element={
+              <ProtectedRoute>
+                <MainLayout><ClientsPage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <MainLayout><DocumentsPage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/fees" element={
+              <ProtectedRoute>
+                <MainLayout><FeesPage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/time" element={
+              <ProtectedRoute>
+                <MainLayout><TimePage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <MainLayout><SettingsPage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
